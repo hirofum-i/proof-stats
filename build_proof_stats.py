@@ -31,6 +31,11 @@ FE_TAG = os.environ.get("PROOF_FE_TAG", "Buyer: FE 10日間リセット")
 MAX_PAGES = 60  # 100件/頁 × 60 = 6,000件で打ち切り（暴走防止）
 
 
+def clean_key(raw):
+    """Secrets登録経路によるBOM・改行・空白の混入を除去（APIキーはASCIIのみ）"""
+    return raw.encode("ascii", "ignore").decode().strip()
+
+
 def api_get(path, key, params=None):
     r = requests.get(f"{BASE}{path}", headers={"X-API-Key": key, "Accept": "application/json"},
                      params=params or {}, timeout=30)
@@ -100,7 +105,7 @@ def agg(contacts, tag, now):
 
 
 def main():
-    key = os.environ.get("SYSTEME_API_KEY")
+    key = clean_key(os.environ.get("SYSTEME_API_KEY", ""))
     if not key:
         sys.exit("環境変数 SYSTEME_API_KEY が未設定です")
 
