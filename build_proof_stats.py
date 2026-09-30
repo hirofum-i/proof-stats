@@ -25,7 +25,8 @@ JST = timezone(timedelta(hours=9))
 LAUNCH = datetime(2026, 7, 23, 0, 0, tzinfo=JST)
 
 # Systemeが自動付与している実タグ名（2026-07-26 実測で確認）
-LEAD_TAG = os.environ.get("PROOF_LEAD_TAG", "Lead: 老けない食事術オプトイン")
+# 2026-09-30: 広告の登録は「（広告）」付きの別タグになったので、両方数える（カンマ区切り）
+LEAD_TAG = os.environ.get("PROOF_LEAD_TAG", "Lead: 老けない食事術オプトイン,Lead: 老けない食事術オプトイン（広告）")
 FE_TAG = os.environ.get("PROOF_FE_TAG", "Buyer: FE 10日間リセット")
 
 MAX_PAGES = 60  # 100件/頁 × 60 = 6,000件で打ち切り（暴走防止）
@@ -87,8 +88,9 @@ def agg(contacts, tag, now):
     """
     h24 = d7 = total = 0
     latest = None
+    wanted = {t.strip() for t in tag.split(",") if t.strip()}
     for c in contacts:
-        if tag not in tag_names(c):
+        if not wanted.intersection(tag_names(c)):
             continue
         total += 1
         dt = parse_dt(c.get("createdAt") or c.get("registeredAt") or "")
